@@ -2,9 +2,9 @@
 ![Imgur](https://i.imgur.com/BVBFMpf.png)
 
 
-<br><br> <br><br> <br><br>
+<br><br> <br><br>
 ### Theory
-[EOG wiki](https://en.wikipedia.org/wiki/Electrooculography)
+[EOG wiki](https://en.wikipedia.org/wiki/Electrooculography)<br><br>
 ![Imgur](https://i.imgur.com/HOOcWlC.png)
 
 <br><br><br><br>
