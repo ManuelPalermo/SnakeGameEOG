@@ -1,10 +1,8 @@
-# Content
-* Theory
-* Signal aquisition hardware
-* Data sampling and comunication
-* Data processing and display
-* Snake game
 
+![Imgur](https://i.imgur.com/BVBFMpf.png)
+
+
+<br><br> <br><br> <br><br>
 ### Theory
 ![Imgur](https://i.imgur.com/HOOcWlC.png)
 
