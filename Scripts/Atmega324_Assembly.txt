@@ -1,0 +1,160 @@
+;;
+; MicroEOG.asm
+;
+; Created: 24-Nov-18 0:37:40
+; Author : Manuel
+;
+
+
+; Replace with your application code
+.NOLIST
+.INCLUDE "m324adef.inc" ; 
+.LIST
+
+.DEF ValorADC = R20		; define registo onde vai estar o canal a fazer amostragem
+.DEF CanalADC = R21		; define registo onde vai ficar o ultimo valor que foi amostrado
+.DEF TAmostragem = R22		; define registo onde vai ser definido o numero de clocks entre cada amostragem
+;(freq de amostragem = 1/(TAmotragem * TimerPrescaleFactor))
+
+
+.CSEG
+.ORG 0x0000
+	JMP	INIT		; faz setup das variaveis e ativa interrupcoes
+
+.CSEG
+.ORG 0x0020			; interrupção quando Timer/Counter0  atinge valor especificado MatchA
+	JMP TIMER_INT
+
+.CSEG
+.ORG 0x0030			; interrupcao no fim da conversão do ADC
+	JMP ADC_EOC_INT
+
+.CSEG
+.ORG 0x0060			; indica que o código vai ser colocado na numa posição acima 
+					; dos vectores de interrupção
+
+;------------------------------------ Inicializacao -------------------------------------;
+INIT:	; faz setup das variaveis/Timer/ADC e ativa interrupcoes
+	LDI TAmostragem,0xFF;			; numero de clocks entre amostragens(0x01->1  /  0xFF->255)
+	CALL INIT_LED_PORT				; inicia PORTD como output para mostar LED(quando conversao esta completa)
+	CALL INIT_TIMER					; inicia interrupçoes por TIMER e faz o seu setup
+	CALL INIT_ADC					; inicia interrupçoes por ADC e faz o seu setup
+	CALL INIT_USART					; inicia a comunicação pela USART
+	SEI								; ativa interrupçoes globais
+	; reinicia o timer do adc, para nao fazer conversao antes de tudo ser inicializado
+	LDI R16,0x00
+	STS TCNT0,R16
+	JMP MAIN						; salta para o ciclo main deposi de inicializar tudo
+		
+INIT_LED_PORT:	; inicializa o PORTD como porto de saída
+	LDI R16,0XFF
+	OUT DDRD,R16
+	RET
+
+INIT_TIMER:
+	; ativa TCCR0B -> Define fator de pre-scale do timer (001-sem prescale / 011 - prescale 32 / 101 - prescale de 1024)
+	LDS R16,TCCR0B
+	LDI R17,0x03  
+	OR R16,R17
+	OUT TCCR0B,R16
+	; ativa OCR0A -> valor a ser comparado para ativar a flag(valor do MatchA)
+	LDS R16,OCR0A
+	OR R16,TAmostragem
+	OUT OCR0A,R16
+	; ativa TIMSK0 -> source do interrupt(overflow timer(001) / MatchA(010))
+	LDS R16,TIMSK0
+	LDI R17,0x02
+	OR R16,R17
+	STS TIMSK0,R16
+	RET
+
+INIT_ADC:
+	; ativa ADCSRA -> Ativa o ADC (e define prescale da frequencia de aquisiçao, e auto-trigger)
+	LDS R16,ADCSRA
+	LDI R17,0x88
+	OR R16,R17
+	STS ADCSRA,R16
+	; ativa ADCSRB -> Ativa source do auto-trigger(Compare Timer MatchA(011))
+	;LDS R16,ADCSRB
+	;LDI R17,0x03
+	;OR R16,R17
+	;STS ADCSRB,R16
+	; ativa ADMUX -> Definer canal ADC a ler (e sinal de referencia, e resolução a usar, etc...)
+	LDS R16,ADMUX	
+	LDI R17,0x60	; define sinal de ref / torna valor left ajusted /  define canal de entrada(comutar entre 0 e 1)
+	OR R16,R17
+	STS ADMUX,R16
+	RET
+
+INIT_USART:
+	; ativa UBRR0(HL) -> Define Baudrate
+	LDI R17,0X00
+	LDI R16,0x0C		; 4800 baud
+	STS UBRR0H, r17
+	STS UBRR0L, r16
+	;ativa UCSR0B -> Ativa interrupcoes USART e ativa transmissor e recetor 
+	LDS R16,UCSR0B
+	LDI r17, 0x18   ;0001 1000 (TXEN0 receiver enable, tansmiter, receiver enable)
+	OR  R16,R17
+	STS UCSR0B,r16
+	; ativa UCSR0C -> Define o tipo de pacote a enviar(paridade/stop bits/numero de caracteres/)
+	LDS R16,UCSR0C
+	LDI r17, 0x06   ;0000 0110 (UPMO no parity, USBS0 0  1bits stopbit, UCSZ0 11 para 8 bit, desisti junto com outros para 9 bits data)
+	OR  R16,R17
+	STS UCSR0C,r16
+	RET
+
+
+;------------------------------------- Ciclo Main --------------------------------------;
+MAIN: ; Nao faz nada no ciclo, esta tudo por interrupçoes
+	nop
+	jmp MAIN
+
+;------------------------------------ Interrupçoes -------------------------------------;
+ADC_EOC_INT:		;interrupcao quando conversao do ADC esta completa
+	; Le o canal selecionado 
+	LDS CanalADC,ADMUX
+	LDI R17,0X01
+	AND CanalADC,R17
+	; le valor do byte mais significativo do ADC
+	LDS ValorADC,ADCH
+	LDI R17,0XFE			;R17=11111110
+	AND ValorADC,R17		;Define valorADC como os primeiros 7bits do byte
+	;comuta canal no ADC 
+	LDS R16,ADMUX
+	LDI R17,0x01
+	EOR R16,R17
+	STS ADMUX,R16
+	; cria pacote e envia pela porta serie
+	;SBRC CanalADC,0		;se canalADC bit 0 = 0 passa prox a frente
+	OR  ValorADC, CanalADC	;Cria pacote com [7:1]bits valor e [0]bit de canal
+	STS UDR0,ValorADC		;Coloca pacote no buffer de saida para ser enviado pela porta serie
+	CALL PIN_TOGGLE
+	RETI
+
+TIMER_INT:			; interrupcao quando ha overflow do Timer0
+	; reset timer0
+	LDI R16,0x00
+	STS TCNT0,R16
+	; incia conversao do ADC
+	LDS R16,ADCSRA
+	LDI R17,0x040		; ativa conversao do ADC
+	OR R16,R17
+	STS ADCSRA,R16
+	RETI
+
+
+;/*
+;------------------------------------ Funçoes acessorias -------------------------------------;
+RESET_TIMER:
+	LDI R16,0x00
+	STS TCNT0,R16
+	RET
+
+PIN_TOGGLE:			; faz toggle do pino de saida
+	IN	R16,PORTD
+	LDI R17,0X80
+	EOR R16,R17
+	OUT PORTD,R16
+	RET
+;*/
