@@ -6,16 +6,16 @@
 * Snake game
 
 ### Theory
-![alt text](https://imgur.com/yvVuqBI)
+[Imgur](https://i.imgur.com/HOOcWlC.png)
 
 ### Signal aquisition hardware
-![alt text](https://imgur.com/GUXpgGK)
+[Imgur](https://i.imgur.com/GUXpgGK.png)
 
 ### Data sampling and comunication
-![alt text](https://imgur.com/sy3vHCL)
+[Imgur](https://i.imgur.com/sy3vHCL.png)
 
 ### Data processing and display
-![alt text](https://imgur.com/WtQyL0G)
+[Imgur](https://i.imgur.com/WtQyL0G.png)
 
 ### Snake game
-![alt text](https://imgur.com/e9gpq7c)
+[Imgur](https://i.imgur.com/e9gpq7c.png)
