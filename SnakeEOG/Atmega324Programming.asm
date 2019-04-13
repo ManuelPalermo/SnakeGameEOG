@@ -13,7 +13,7 @@
 	JMP	INICIO				; salta os vetores de interrupcao para o INICIO
 
 .CSEG
-.ORG 0x0030					; quando se da interrupÁao de conversao completa do ADC 
+.ORG 0x0030					; quando se da interrup√ßao de conversao completa do ADC 
 	JMP INT_HANDLER_ADC			; salta para Handler da interrupcao
 	 
 
@@ -25,24 +25,24 @@ INICIO:
 	;Timer:					; configuracao do timer
 	LDS R16,TCCR0B				; copia valores do TCCR0B para R16
 	LDI R17,0x02				; 0000 0010 para R17 ->(CS0 010: clock com prescaling de 8)
-	OR  R16,R17     			; junta valores de R16 e R17 para R16(junta apenas alteraÁoes)
+	OR  R16,R17     			; junta valores de R16 e R17 para R16(junta apenas altera√ßoes)
 	STS TCCR0B,R16  			; altera TCCR0B com as configuracoes em R16
 	
 	
 	;ADC:					; configuracao do ADC
 	LDS R16,ADCSRA				; copia valores do ADCSRA para R16
 	LDI R17,0xA8			 	; 1010 1000 para R17 -> (ADEN 1: ativa adc / ADATE 1: ativa autotrigger / ADIE 1: ativa interrupcao de fim de conversao)
-	OR  R16,R17					; junta valores de R16 e R17 para R16(junta apenas alteraÁoes)
+	OR  R16,R17					; junta valores de R16 e R17 para R16(junta apenas altera√ßoes)
 	STS ADCSRA,R16				; altera ADCSRA com as configuracoes em R16
 
 	LDS R16,ADCSRB				; copia valores do ADCSRB para R16
 	LDI R17,0x04				; 0000 0100 para R17 -> (ADTS 100: ativa autotrigger com overflow do clk0)
-	OR  R16,R17					; junta valores de R16 e R17 para R16(junta apenas alteraÁoes)
+	OR  R16,R17					; junta valores de R16 e R17 para R16(junta apenas altera√ßoes)
 	STS ADCSRB,R16				; altera ADCSRB com as configuracoes em R16
 
 	LDS R16,ADMUX   			; copia valores do ADMUX para R16
 	LDI R17,0x60				; 0110 0000 para R17 -> (REFD 01: seleciona ref de 5V / ADLAR 1: left adjusted / MUX 00000: seleciona ADC0)
-	OR  R16,R17					; junta valores de R16 e R17 para R16(junta apenas alteraÁoes)
+	OR  R16,R17					; junta valores de R16 e R17 para R16(junta apenas altera√ßoes)
 	STS ADMUX,R16				; altera ADMUX com as configuracoes em R16
 
 	
@@ -54,12 +54,12 @@ INICIO:
 
 	LDS R16,UCSR0B				; copia valores do UCSR0B para R16
 	LDI r17,0x18   				; 0001 1000 para R17 -> (RXEN0 1: tansmiter enable / TXEN0 1: receiver enable)
-	OR  R16,R17					; junta valores de R16 e R17 para R16(junta apenas alteraÁoes)
+	OR  R16,R17					; junta valores de R16 e R17 para R16(junta apenas altera√ßoes)
 	STS UCSR0B,r16				; altera UCSR0B com as configuracoes em R16
 
 	LDS R16,UCSR0C				; copia valores do UCSR0C para R16
 	LDI r17, 0x06   			; 0000 0110 para R17 -> (UPMO 00: sem bit paridade / USBS0 0: 1 stopbit / UCSZ0 011: 8 bit char size)
-	OR  R16,R17					; junta valores de R16 e R17 para R16(junta apenas alteraÁoes)
+	OR  R16,R17					; junta valores de R16 e R17 para R16(junta apenas altera√ßoes)
 	STS UCSR0C,r16				; altera UCSR0C com as configuracoes em R16
 	
 	SEI							; ativa as interrupcoes globalmente
@@ -90,7 +90,7 @@ INT_HANDLER_ADC:				; Lida com a interrupcao de fim de conversao do ADC
 	;comuta o canal do ADC:
 	LDS R16,ADMUX				; copia valores do ADMUX para R16
 	LDI R17,0x01				; R17 = 0000 0001
-	EOR R16,R17					; mantem todos valores menos o ultimo, que ir· comutar, alterando o canal do ADC
+	EOR R16,R17					; mantem todos valores menos o ultimo, que ir√° comutar, alterando o canal do ADC
 	STS ADMUX,R16				; altera ADMUX com as configuracoes em R16
 
 	;envio porta serie:
