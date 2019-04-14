@@ -1,5 +1,5 @@
 
-![Imgur](https://i.imgur.com/BVBFMpf.png)<br><br>
+![Imgur](https://imgur.com/ifvxgtR)<br><br>
 In colaboration with [BBrunoEsteves](https://github.com/BBrunoEsteves).
 
 
